@@ -1,0 +1,11 @@
+{
+  "name": "portuguessing",
+  "version": "1.0.0",
+  "description": "App web/móvil (PWA) para aprender portugués con frases por profesión, hora y formalidad.",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node tests/run.js"
+  },
+  "license": "MIT"
+}

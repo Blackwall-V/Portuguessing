@@ -10,8 +10,9 @@
  *         { when: ['morning'|'afternoon'|'night'] } → solo en ese momento del día
  *
  * Marcas: {Sd} Bom dia/Boa tarde/Boa noite · {umbom} · {sr}/{Sr} o senhor/a senhora
- *         {bv} bem-vindo/a · {obg}/{Obg} obrigado/a · {moeda} reais/euros
- *         {esd} {esumbuen} {esbv} {mes} → versión en español.
+ *         {bv} bem-vindo/a · {obg}/{Obg} obrigado/a · {moeda} pesos/reais/euros…
+ *         {pa} {pb} {pc} importe de ejemplo con palabras (según la moneda elegida)
+ *         {esd} {esumbuen} {esbv} {mes} {ea} {eb} {ec} → versión en español.
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -20,16 +21,16 @@
   'use strict';
 
   const CATS = {
-    saludo: { label: 'Saludar', icon: '👋' },
-    preguntar: { label: 'Preguntar', icon: '❓' },
-    informar: { label: 'Informar', icon: 'ℹ️' },
-    precio: { label: 'Precio y pago', icon: '💶' },
-    indicar: { label: 'Indicaciones', icon: '📌' },
-    problema: { label: 'Problemas', icon: '⚠️' },
-    cortesia: { label: 'Cortesía', icon: '🤝' },
-    basico: { label: 'Básico', icon: '🔤' },
-    despedida: { label: 'Despedirse', icon: '🙋' },
-    hear: { label: 'Te pueden decir', icon: '👂' },
+    saludo: { label: 'Saludar', icon: 'wave' },
+    preguntar: { label: 'Preguntar', icon: 'question' },
+    informar: { label: 'Informar', icon: 'info' },
+    precio: { label: 'Precio y pago', icon: 'money' },
+    indicar: { label: 'Indicaciones', icon: 'pin' },
+    problema: { label: 'Problemas', icon: 'warning' },
+    cortesia: { label: 'Cortesía', icon: 'heart' },
+    basico: { label: 'Básico', icon: 'type' },
+    despedida: { label: 'Despedirse', icon: 'exit' },
+    hear: { label: 'Te pueden decir', icon: 'ear' },
   };
 
   function mk(prefix) {
@@ -94,8 +95,8 @@
       { f: 'Um momento, por favor.', i: 'Só um minuto.' }),
     pc('informar', 'Voy a comprobar si hay en stock.', 'Vou verificar se temos em estoque.',
       'Vou ver se tem em estoque.', { f: 'Vou verificar se temos em stock.', i: 'Vou ver se temos em stock.' }),
-    pc('precio', 'Cuesta veinticinco {mes}.', 'Custa vinte e cinco {moeda}.'),
-    pc('precio', 'El total es de cuarenta {mes}.', 'O total é de quarenta {moeda}.'),
+    pc('precio', 'Cuesta {ea}.', 'Custa {pa}.'),
+    pc('precio', 'El total es de {eb}.', 'O total é de {pb}.'),
     pc('informar', 'No lo vendemos.', 'Não vendemos isso.', 'A gente não vende isso.',
       { f: 'Não vendemos isso.', i: 'Não vendemos isso.' }),
     pc('problema', 'No lo tenemos. Se agotó.', 'Não temos esse item. Está esgotado.',
@@ -215,7 +216,7 @@
     ph('hear', '¿Puedo dejar el equipaje aquí?', 'Posso deixar a bagagem aqui?'),
   ];
 
-  /* ---------------- Salud / farmacia ---------------- */
+  /* ---------------- Salud / consulta ---------------- */
   const ps = mk('salud');
   const salud = [
     ps('saludo', '{esd}. ¿En qué puedo ayudarle?', '{Sd}. Em que posso ajudar?', '{Sd}! Posso te ajudar?',
@@ -267,7 +268,7 @@
       '{Sr} pode me dar o endereço, por favor?', 'Me passa o endereço?',
       { f: 'Pode dar-me a morada, por favor?', i: 'Dás-me a morada?' }),
     pt_('informar', 'El viaje dura unos veinte minutos.', 'A viagem leva uns vinte minutos.'),
-    pt_('precio', 'El precio aproximado es de treinta {mes}.', 'O valor aproximado é de trinta {moeda}.'),
+    pt_('precio', 'El precio aproximado es de {ec}.', 'O valor aproximado é de {pc}.'),
     pt_('indicar', ['Abróchese el cinturón, por favor.', 'Abróchate el cinturón, por favor.'],
       'Coloque o cinto de segurança, por favor.', 'Coloca o cinto, por favor.',
       { f: 'Ponha o cinto de segurança, por favor.', i: 'Põe o cinto, por favor.' }),
@@ -330,15 +331,161 @@
       'Pode enviar-me o orçamento?'),
   ];
 
-  const decks = [
-    { id: 'esencial', icon: '👋', name: 'Esencial', desc: 'Saludos, cortesía y lo básico', phrases: esencial },
-    { id: 'tienda', icon: '🛍️', name: 'Tienda', desc: 'Atención al público y caja', phrases: tienda },
-    { id: 'restaurante', icon: '🍽️', name: 'Restaurante', desc: 'Camarero, café y bar', phrases: restaurante },
-    { id: 'hotel', icon: '🏨', name: 'Hotel', desc: 'Recepción y huéspedes', phrases: hotel },
-    { id: 'salud', icon: '💊', name: 'Salud', desc: 'Farmacia y consulta (uso educativo)', phrases: salud },
-    { id: 'transporte', icon: '🚕', name: 'Transporte', desc: 'Taxi, conductor y viajeros', phrases: transporte },
-    { id: 'oficina', icon: '💼', name: 'Oficina', desc: 'Teléfono, correo y reuniones', phrases: oficina },
+  /* ---------------- Farmacia (mostrador) ---------------- */
+  const pf = mk('farmacia');
+  const farmacia = [
+    pf('saludo', ['{esd}, {esbv} a la farmacia. ¿En qué puedo ayudarle?', '{esd}. ¿En qué te puedo ayudar?'],
+      '{Sd}, {bv} à farmácia! Em que posso ajudar?', '{Sd}! Posso te ajudar?',
+      { f: '{Sd}, {bv} à farmácia! Em que posso ajudar?', i: '{Sd}! Posso ajudar-te?' }),
+    pf('preguntar', ['¿Busca algún medicamento en particular?', '¿Buscas algún medicamento en particular?'],
+      '{Sr} procura algum medicamento em especial?', 'Você está procurando algum remédio em especial?',
+      { f: 'Procura algum medicamento em especial?', i: 'Procuras algum medicamento em especial?' }),
+    pf('preguntar', ['¿Trae la receta?', '¿Trajiste la receta?'],
+      '{Sr} trouxe a receita?', 'Você trouxe a receita?',
+      { f: 'Trouxe a receita?', i: 'Trouxeste a receita?' }),
+    pf('informar', 'Este medicamento solo se vende con receta.', 'Este medicamento só é vendido com receita médica.'),
+    pf('informar', 'Este se vende sin receta.', 'Este é de venda livre.'),
+    pf('informar', 'Es un medicamento controlado: tengo que quedarme con la receta.',
+      'É um medicamento controlado: preciso reter a receita.', null,
+      'É um medicamento controlado: preciso de reter a receita.'),
+    pf('preguntar', ['¿Es para usted?', '¿Es para ti?'], 'É para {sr}?', 'É para você?',
+      { f: 'É para si?', i: 'É para ti?' }),
+    pf('preguntar', '¿Es para un adulto o para un niño?', 'É para um adulto ou para uma criança?'),
+    pf('preguntar', ['¿Está tomando otros medicamentos?', '¿Estás tomando otros medicamentos?'],
+      '{Sr} está tomando outros medicamentos?', 'Você está tomando outro remédio?',
+      { f: 'Está a tomar outros medicamentos?', i: 'Estás a tomar outros medicamentos?' }),
+    pf('preguntar', ['¿Está embarazada o amamantando?', '¿Estás embarazada o amamantando?'],
+      'A senhora está grávida ou amamentando?', 'Você está grávida ou amamentando?',
+      { f: 'Está grávida ou a amamentar?', i: 'Estás grávida ou a amamentar?' }),
+    pf('preguntar', ['¿Tiene presión alta o diabetes?', '¿Tienes presión alta o diabetes?'],
+      '{Sr} tem pressão alta ou diabetes?', 'Você tem pressão alta ou diabetes?',
+      { f: 'Tem tensão alta ou diabetes?', i: 'Tens tensão alta ou diabetes?' }),
+    pf('informar', 'Tenemos el genérico (bioequivalente), que es más barato.',
+      'Temos o genérico, que é mais barato.'),
+    pf('precio', 'Este cuesta {ea}.', 'Este custa {pa}.'),
+    pf('precio', 'Son {eb}, por favor.', 'São {pb}, por favor.'),
+    pf('precio', ['¿Desea boleta o factura?', '¿Quieres boleta o factura?'],
+      '{Sr} quer recibo ou nota fiscal?', 'Quer recibo ou nota fiscal?',
+      { f: 'Quer o talão ou fatura?', i: 'Queres o talão ou fatura?' }),
+    pf('precio', ['Puede pagar en la caja.', 'Puedes pagar en la caja.'],
+      '{Sr} pode pagar no caixa.', 'Pode pagar no caixa.',
+      { f: 'Pode pagar na caixa.', i: 'Podes pagar na caixa.' }),
+    pf('indicar', ['Tome una cápsula al día, en ayunas.', 'Toma una cápsula al día, en ayunas.'],
+      'Tome uma cápsula por dia, em jejum.', 'Toma uma cápsula por dia, em jejum.'),
+    pf('indicar', ['Tómelo dos veces al día, en la mañana y en la noche.', 'Tómalo dos veces al día, en la mañana y en la noche.'],
+      'Tome duas vezes por dia, de manhã e à noite.', 'Toma duas vezes por dia, de manhã e à noite.'),
+    pf('indicar', ['Tómelo antes de las comidas.', 'Tómalo antes de las comidas.'],
+      'Tome antes das refeições.', 'Toma antes das refeições.'),
+    pf('indicar', ['Termine el tratamiento completo, aunque se sienta mejor.', 'Termina el tratamiento completo, aunque te sientas mejor.'],
+      'Termine o tratamento, mesmo que se sinta melhor.', 'Termina o tratamento, mesmo que você se sinta melhor.',
+      { f: 'Termine o tratamento, mesmo que se sinta melhor.', i: 'Termina o tratamento, mesmo que te sintas melhor.' }),
+    pf('indicar', ['Aplíquese la crema dos veces al día.', 'Aplícate la crema dos veces al día.'],
+      'Aplique a pomada duas vezes por dia.', 'Aplica a pomada duas vezes por dia.'),
+    pf('indicar', 'Agite antes de usar.', 'Agite bem antes de usar.'),
+    pf('indicar', ['Puede causar sueño: no maneje después de tomarlo.', 'Puede dar sueño: no manejes después de tomarlo.'],
+      'Pode causar sono: não dirija depois de tomar.', null,
+      { f: 'Pode causar sonolência: não conduza depois de tomar.', i: 'Pode causar sonolência: não conduzas depois de tomar.' }),
+    pf('indicar', ['Guárdelo en un lugar fresco y seco.', 'Guárdalo en un lugar fresco y seco.'],
+      'Guarde em local fresco e seco.', 'Guarda em local fresco e seco.'),
+    pf('indicar', ['Guárdelo en el refrigerador.', 'Guárdalo en el refrigerador.'],
+      'Guarde na geladeira.', 'Guarda na geladeira.',
+      { f: 'Guarde no frigorífico.', i: 'Guarda no frigorífico.' }),
+    pf('informar', 'Puede dar efectos secundarios, como náuseas.',
+      'Pode causar efeitos colaterais, como enjoo.', null, 'Pode causar efeitos secundários, como náuseas.'),
+    pf('indicar', ['Lea el prospecto antes de usarlo.', 'Lee el prospecto antes de usarlo.'],
+      'Leia a bula antes de usar.', null,
+      { f: 'Leia o folheto informativo antes de usar.', i: 'Lê o folheto informativo antes de usar.' }),
+    pf('problema', 'Ese medicamento está agotado, pero puedo pedirlo.',
+      'Esse medicamento está em falta, mas posso encomendar.', null,
+      'Esse medicamento está esgotado, mas posso encomendar.'),
+    pf('informar', 'Un momento, voy a consultar con el farmacéutico.',
+      'Um momento, vou consultar o farmacêutico.'),
+    pf('indicar', ['Para eso necesita ver a un médico.', 'Para eso necesitas ver a un médico.'],
+      'Para isso {sr} precisa consultar um médico.', 'Para isso você precisa consultar um médico.',
+      { f: 'Para isso precisa de consultar um médico.', i: 'Para isso precisas de consultar um médico.' }),
+    pf('despedida', 'Gracias por venir. Que se mejore pronto.', 'Muito {obg}. Melhoras!', '{Obg}! Melhoras!',
+      { f: 'Muito {obg}. As melhoras!', i: '{Obg}! As melhoras!' }),
+    pf('hear', 'Necesito algo para el resfriado.', 'Preciso de algo para resfriado.', null,
+      'Preciso de algo para a constipação.'),
+    pf('hear', '¿Tienen algo para la tos?', 'Vocês têm algo para a tosse?', null, 'Têm algo para a tosse?'),
+    pf('hear', '¿Me puede recomendar algo para el dolor de estómago?',
+      'Pode me recomendar algo para dor de estômago?', null, 'Pode recomendar-me algo para as dores de estômago?'),
+    pf('hear', '¿Cuántas veces al día debo tomarlo?', 'Quantas vezes por dia devo tomar?'),
+    pf('hear', '¿Tiene efectos secundarios?', 'Isso tem efeitos colaterais?', null, 'Isto tem efeitos secundários?'),
+    pf('hear', '¿Es seguro para niños?', 'É seguro para crianças?'),
+    pf('hear', '¿Cuál es la fecha de vencimiento?', 'Qual é a data de validade?'),
+    pf('hear', '¿Puedo tomarlo con alcohol?', 'Posso tomar com álcool?'),
+    pf('hear', 'Es para mi hijo, tiene fiebre.', 'É para o meu filho, ele está com febre.', null,
+      'É para o meu filho, ele tem febre.'),
+    pf('hear', 'Busco protector solar.', 'Estou procurando protetor solar.', null, 'Procuro protetor solar.'),
+    pf('hear', 'Quiero un termómetro.', 'Quero um termômetro.', null, 'Quero um termómetro.'),
   ];
 
-  return { CATS, decks };
+  const decks = [
+    { id: 'esencial', icon: 'book', name: 'Esencial', desc: 'Saludos, cortesía y lo básico', phrases: esencial },
+    { id: 'tienda', icon: 'bag', name: 'Tienda', desc: 'Atención al público y caja', phrases: tienda },
+    { id: 'restaurante', icon: 'utensils', name: 'Restaurante', desc: 'Camarero, café y bar', phrases: restaurante },
+    { id: 'hotel', icon: 'bed', name: 'Hotel', desc: 'Recepción y huéspedes', phrases: hotel },
+    { id: 'salud', icon: 'pill', name: 'Salud', desc: 'Consulta y síntomas (uso educativo)', phrases: salud },
+    { id: 'farmacia', icon: 'cross', name: 'Farmacia', desc: 'Mostrador, recetas e indicaciones de uso', phrases: farmacia },
+    { id: 'transporte', icon: 'car', name: 'Transporte', desc: 'Taxi, conductor y viajeros', phrases: transporte },
+    { id: 'oficina', icon: 'briefcase', name: 'Oficina', desc: 'Teléfono, correo y reuniones', phrases: oficina },
+  ];
+
+  /* ---------------- Frases aprobadas en vivo (content/extra.json) ----------------
+   * Cada entrada:
+   *   { id: 'x-farmacia-001', deck: 'farmacia', cat: 'indicar',
+   *     es: ['¿…usted?', '¿…tú?'], f: '…', i: '…', p: { f: '…', i: '…' }, when: ['morning'], hear: true }
+   * Mismos campos y marcas que p(...). Lo que no sea válido se descarta y se informa. */
+
+  const PERIOD_IDS = ['morning', 'afternoon', 'night'];
+  const isText = (v) => typeof v === 'string' && v.trim().length > 0 && v.length <= 400;
+
+  function problem(raw, ids, tokens, targetDecks) {
+    if (!raw || typeof raw !== 'object') return 'no es un objeto';
+    if (typeof raw.id !== 'string' || !/^x-[a-z0-9-]{2,60}$/.test(raw.id)) return 'id inválido (usa x-algo, en minúsculas)';
+    if (ids.has(raw.id)) return 'id repetido';
+    if (!targetDecks.some((d) => d.id === raw.deck)) return 'profesión desconocida: ' + raw.deck;
+    if (!CATS[raw.cat]) return 'categoría desconocida: ' + raw.cat;
+    const es = raw.es;
+    if (!(isText(es) || (Array.isArray(es) && es.length === 2 && es.every(isText)))) return 'es inválido';
+    if (!isText(raw.f)) return 'f (portugués formal) inválido';
+    if (raw.i != null && !isText(raw.i)) return 'i inválido';
+    if (raw.p != null) {
+      const p = raw.p;
+      const okP = isText(p) || (typeof p === 'object' && !Array.isArray(p) &&
+        ['f', 'i'].every((k) => p[k] == null || isText(p[k])) && (p.f != null || p.i != null));
+      if (!okP) return 'p inválido';
+    }
+    if (raw.when != null && !(Array.isArray(raw.when) && raw.when.length && raw.when.every((w) => PERIOD_IDS.includes(w)))) return 'when inválido';
+    const all = [].concat(es, raw.f, raw.i || [], typeof raw.p === 'string' ? raw.p : raw.p ? [raw.p.f || '', raw.p.i || ''] : []);
+    for (const t of all) for (const m of String(t).matchAll(/\{(\w+)\}/g)) if (!tokens.includes(m[1])) return 'marca desconocida {' + m[1] + '}';
+    return '';
+  }
+
+  /* Suma las frases válidas a sus profesiones. Devuelve { added, rejected: [{ id, reason }] }.
+   * tokens: lista de marcas válidas (PG.TOKEN_NAMES). targetDecks: solo para pruebas. */
+  function mergeExtra(list, tokens, targetDecks) {
+    const target = targetDecks || decks;
+    const rejected = [];
+    if (!Array.isArray(list)) return { added: 0, rejected: [{ id: null, reason: 'el archivo no es una lista' }] };
+    const ids = new Set();
+    target.forEach((d) => d.phrases.forEach((ph) => ids.add(ph.id)));
+    let added = 0;
+    for (const raw of list) {
+      const reason = problem(raw, ids, tokens, target);
+      if (reason) { rejected.push({ id: raw && raw.id ? raw.id : null, reason }); continue; }
+      const ph = { id: raw.id, cat: raw.cat, es: raw.es, f: raw.f, extra: true };
+      if (raw.i != null) ph.i = raw.i;
+      if (raw.p != null) ph.p = typeof raw.p === 'string' ? { f: raw.p } : raw.p;
+      if (raw.when) ph.when = raw.when;
+      if (raw.cat === 'hear' || raw.hear) ph.hear = true;
+      target.find((d) => d.id === raw.deck).phrases.push(ph);
+      ids.add(ph.id);
+      added++;
+    }
+    return { added, rejected };
+  }
+
+  return { CATS, decks, mergeExtra };
 });

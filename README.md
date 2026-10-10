@@ -44,6 +44,30 @@ npm test           # valida los datos y la lógica (sin dependencias)
 
 (Sirve cualquier hosting estático: Netlify, Cloudflare Pages, Vercel…)
 
+## App nativa (Android e iOS)
+
+La misma app está empaquetada con [Capacitor](https://capacitorjs.com): los proyectos nativos están en
+`android/` e `ios/`. Dentro de la app nativa se usa la **voz del sistema** (funciona sin conexión), el
+**botón atrás de Android** navega por la app, y el quiz **vibra** al responder.
+
+```bash
+npm install
+npm run android   # copia la web, sincroniza plugins y abre Android Studio
+npm run ios       # lo mismo para Xcode (solo en macOS)
+npm run apk       # compila un APK de depuración (necesita el SDK de Android)
+```
+
+Cada vez que cambies algo en `index.html`, `css/`, `js/` o `icons/`, ejecuta `npm run sync` para copiarlo a los
+proyectos nativos (la copia en `android/…/assets` e `ios/…/public` es generada y no se versiona).
+
+- **ID de la app:** `app.portuguessing.mobile` (en `capacitor.config.json`). Cámbialo **antes** de publicar en las
+  tiendas: después no se puede modificar. Si lo cambias, ejecuta `npx cap sync` y revisa `applicationId` en
+  `android/app/build.gradle`.
+- **Iconos y pantalla de inicio:** se generan desde `assets/` con `npx capacitor-assets generate`.
+- **Publicar:** en Android Studio, *Build → Generate Signed Bundle / APK* (AAB para Google Play). En iOS necesitas
+  Xcode, un Mac y una cuenta de Apple Developer.
+- Requisitos: Node 20+, JDK 21 y Android Studio reciente para Android.
+
 ## Añadir o cambiar frases
 
 Todo el contenido está en [`js/data.js`](js/data.js):
@@ -67,6 +91,9 @@ Para añadir una profesión, crea otra lista con `mk('id')` y agrégala a `decks
 
 ```
 index.html · manifest.webmanifest · sw.js   PWA (instalable y offline)
+android/ · ios/ · capacitor.config.json     proyectos nativos (Capacitor)
+scripts/build-web.js                        copia la web a www/
+assets/                                     fuentes de iconos y splash
 js/lib.js    lógica pura: hora, formalidad, variantes, números → portugués
 js/data.js   frases por profesión
 js/app.js    interfaz

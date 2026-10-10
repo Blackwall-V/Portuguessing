@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Portuguessing</string>
+    <string name="title_activity_main">Portuguessing</string>
+    <string name="package_name">app.portuguessing.mobile</string>
+    <string name="custom_url_scheme">app.portuguessing.mobile</string>
+</resources>

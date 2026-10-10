@@ -75,18 +75,48 @@
 
   /* ---------- Voz ---------- */
 
-  const hasSpeech = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  /* Dentro de la app nativa (Capacitor) se usa la voz del sistema operativo, que funciona
+   * sin conexión y suena mejor; en el navegador, la Web Speech API. */
+  const Cap = window.Capacitor;
+  const isNative = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
+  function nativePlugin(name) {
+    try { return isNative ? Cap.registerPlugin(name) : null; } catch (e) { return null; }
+  }
+  const NativeTTS = nativePlugin('TextToSpeech');
+  const NativeApp = nativePlugin('App');
+  const Haptics = nativePlugin('Haptics');
+  const nativeVoice = { 'pt-BR': true, 'pt-PT': true }; // se confirma al arrancar
+
+  const hasWebSpeech = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  const hasSpeech = !!NativeTTS || hasWebSpeech;
   let voices = [];
-  function loadVoices() { if (hasSpeech) voices = speechSynthesis.getVoices(); }
-  if (hasSpeech) {
+  function loadVoices() { if (hasWebSpeech) voices = speechSynthesis.getVoices(); }
+  if (hasWebSpeech) {
     loadVoices();
     speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', loadVoices);
   }
   const speechLang = () => (S.variant === 'pt' ? 'pt-PT' : 'pt-BR');
-  function hasPtVoice() { return voices.some((v) => v.lang.toLowerCase().startsWith('pt')); }
+  function hasPtVoice() {
+    return NativeTTS ? nativeVoice[speechLang()] : voices.some((v) => v.lang.toLowerCase().startsWith('pt'));
+  }
+  function stopSpeech() {
+    if (NativeTTS) NativeTTS.stop().catch(() => {});
+    else if (hasWebSpeech) speechSynthesis.cancel();
+  }
+  function haptic(kind) {
+    if (!Haptics) return;
+    const call = kind === 'ok' ? Haptics.notification({ type: 'SUCCESS' })
+      : kind === 'bad' ? Haptics.notification({ type: 'ERROR' }) : Haptics.impact({ style: 'LIGHT' });
+    call.catch(() => {});
+  }
 
   function speak(text, slow) {
     if (!hasSpeech) { toast('Tu navegador no tiene voz. Prueba con Chrome, Edge o Safari.'); return; }
+    if (NativeTTS) {
+      NativeTTS.speak({ text: text.replace(/…/g, ''), lang: speechLang(), rate: slow ? 0.6 : 0.9, pitch: 1, volume: 1, category: 'playback' })
+        .catch(() => toast('No se pudo reproducir la voz. Revisa el texto a voz del sistema.'));
+      return;
+    }
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text.replace(/…/g, ''));
     const lang = speechLang();
@@ -408,7 +438,7 @@
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const noVoice = !hasSpeech
       ? 'Este navegador no tiene síntesis de voz.'
-      : voices.length && !hasPtVoice() ? 'No se encontró una voz en portugués en este dispositivo. Instálala en los ajustes del sistema (Texto a voz).' : '';
+      : (NativeTTS || voices.length) && !hasPtVoice() ? 'No se encontró una voz en portugués en este dispositivo. Instálala en los ajustes del sistema (Texto a voz).' : '';
     return `
       <header class="top"><div><h1>Ajustes</h1><div class="sub">Personaliza tu portugués</div></div></header>
       <div class="setting"><h3>Variante</h3>
@@ -423,7 +453,7 @@
       <div class="setting"><h3>Voz</h3>
         ${noVoice ? `<div class="note">${esc(noVoice)}</div>` : '<p>Prueba cómo suena con la variante elegida.</p>'}
         <button class="ghost-btn" data-action="speak-text" data-text="Olá! Seja bem-vindo. Em que posso ajudar?">🔊 Probar voz</button></div>
-      ${standalone ? '' : `<div class="setting"><h3>Instalar en el celular</h3>
+      ${standalone || isNative ? '' : `<div class="setting"><h3>Instalar en el celular</h3>
         ${installEvent
           ? '<p>Instálala y úsala como una app, también sin conexión.</p><button class="primary-btn" data-action="install">Instalar app</button>'
           : ios
@@ -483,7 +513,7 @@
       case 'tab': V.tab = id; V.deck = null; V.session = null; render(); break;
       case 'set': {
         S[el.dataset.key] = el.dataset.value;
-        if (el.dataset.key === 'variant' && hasSpeech) speechSynthesis.cancel();
+        if (el.dataset.key === 'variant') stopSpeech();
         save(); render(true); break;
       }
       case 'prof': S.prof = id; V.cat = 'all'; V.q = ''; save(); render(); break;
@@ -507,6 +537,7 @@
       case 'reveal': s.shown = true; render(true); speak(pick(PHRASES[s.queue[s.i]], ctx()).pt); break;
       case 'card-answer': {
         const ok = el.dataset.ok === '1';
+        haptic('tap');
         record(s.queue[s.i], ok);
         if (ok) s.right++;
         s.i++; s.shown = false;
@@ -517,6 +548,7 @@
         const q = s.questions[s.i];
         s.answered = Number(el.dataset.idx);
         const ok = q.options[s.answered] === q.right;
+        haptic(ok ? 'ok' : 'bad');
         record(q.id, ok);
         if (ok) s.right++;
         save(); render(true); break;
@@ -540,6 +572,20 @@
     }
   });
 
+  /* Navegación hacia atrás (botón atrás de Android): cierra lo más "profundo" primero. */
+  function goBack() {
+    if (!$('#overlay').hidden) { $('#overlay').hidden = true; return true; }
+    if (V.session) { V.session = null; render(); return true; }
+    if (V.deck) { V.deck = null; render(); return true; }
+    if (V.tab !== 'help') { V.tab = 'help'; render(); return true; }
+    return false;
+  }
+  if (NativeApp) {
+    NativeApp.addListener('backButton', () => {
+      if (!goBack()) NativeApp.exitApp();
+    });
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !$('#overlay').hidden) $('#overlay').hidden = true;
   });
@@ -547,7 +593,15 @@
   /* ---------- Arranque ---------- */
 
   render();
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  if (NativeTTS) {
+    ['pt-BR', 'pt-PT'].forEach((lang) => {
+      NativeTTS.isLanguageSupported({ lang }).then((r) => {
+        nativeVoice[lang] = !!r.supported;
+        if (V.tab === 'settings' && !V.session) render(true);
+      }).catch(() => {});
+    });
+  }
+  if (!isNative && 'serviceWorker' in navigator && location.protocol.startsWith('http')) {
     navigator.serviceWorker.register('sw.js').catch(() => { /* sin soporte offline */ });
   }
 })();

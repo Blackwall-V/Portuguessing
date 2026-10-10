@@ -34,13 +34,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Preparar sitio
-        run: |
-          mkdir _site
-          cp -r index.html sw.js manifest.webmanifest css js icons _site/
+        run: npm run build:web
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: www
       - id: deployment
         uses: actions/deploy-pages@v4
